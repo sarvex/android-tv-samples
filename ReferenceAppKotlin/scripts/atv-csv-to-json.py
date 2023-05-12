@@ -23,7 +23,7 @@ def main():
 
     # Avoid overwriting an existing file
     if Path(args.output_file).exists():
-        sys.exit(args.output_file + " already exists; aborting")
+        sys.exit(f"{args.output_file} already exists; aborting")
 
     # Read in the csv and process it
     try:
@@ -47,7 +47,7 @@ def main():
         os.remove(args.output_file)
         sys.exit("Missing key in input CSV: {0}".format(err))
 
-    print("JSON written to " + args.output_file)
+    print(f"JSON written to {args.output_file}")
 
 def get_api_metadata_dict():
     '''Returns a dictionary with metadata for the API JSON'''
@@ -57,9 +57,10 @@ def create_json_api_content_list(csv_content_list):
     '''Takes a dict from the CSV input and returns a dict for the JSON API output'''
     json_api_list = []
     for content in csv_content_list:
-        json_content_item = {}
-        for csv_key, json_key in csv_columns_to_json_keys.items():
-            json_content_item[json_key] = content[csv_key]
+        json_content_item = {
+            json_key: content[csv_key]
+            for csv_key, json_key in csv_columns_to_json_keys.items()
+        }
         json_api_list.append(json_content_item)
     return json_api_list
 

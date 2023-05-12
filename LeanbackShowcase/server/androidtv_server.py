@@ -778,11 +778,11 @@ def update_category_name(old_category, new_category):
 
 # helper function to judge if the database is created or not
 def is_database_created():
-    if len(Category.query().fetch()) > 0 \
-            or len(MovieClip.query().fetch()) > 0 \
-            or len(MovieOverview.query().fetch()) > 0:
-        return True
-    return False
+    return (
+        len(Category.query().fetch()) > 0
+        or len(MovieClip.query().fetch()) > 0
+        or len(MovieOverview.query().fetch()) > 0
+    )
 
 
 # helper function to find the largest id in database if the database is existed

@@ -45,7 +45,8 @@ id_json_key = "@id"
 type_json_key = "@type"
 type_json_value = "DataFeed"
 dateModified_json_key = "dateModified"
-dateModified_json_value = datetime.now().replace(microsecond=0).isoformat()+"Z"
+dateModified_json_value = (
+    f"{datetime.now().replace(microsecond=0).isoformat()}Z")
 dataFeed_json_key = "dataFeedElement"
 partOfSeries_json_key = "partOfSeries"
 partOfSeason_json_key = "partOfSeason"
@@ -66,11 +67,11 @@ def main():
 
   # Avoid overwriting an existing movies file
   if Path(args.output_movie_file).exists():
-    sys.exit(args.output_movie_file + " already exists; aborting")
+    sys.exit(f"{args.output_movie_file} already exists; aborting")
 
   # Avoid overwriting an existing episodes file
   if Path(args.output_episodes_file).exists():
-    sys.exit(args.output_episodes_file + " already exists; aborting")
+    sys.exit(f"{args.output_episodes_file} already exists; aborting")
 
   # Read in the csv and process it
   try:
@@ -110,8 +111,10 @@ def main():
     os.remove(args.output_episodes_file)
     sys.exit("Missing key in input CSV: {0}".format(err))
 
-  print("Movies media action feed JSON written to " + args.output_movie_file)
-  print("TV episodes media action feed JSON written to " + args.output_episodes_file)
+  print(f"Movies media action feed JSON written to {args.output_movie_file}")
+  print(
+      f"TV episodes media action feed JSON written to {args.output_episodes_file}"
+  )
 
 def create_json_movies_list(csv_content_list):
   '''Takes a dict from the CSV input and returns a dict for the movies media feed output'''
@@ -119,10 +122,10 @@ def create_json_movies_list(csv_content_list):
   for content in csv_content_list:
     if csv_type_to_media_action_type[content["type"]] != "Movie":
       continue
-    movie_item = {}
-    movie_item[context_json_key] = context_value_media
-    movie_item[type_json_key] = csv_type_to_media_action_type[content["type"]]
-
+    movie_item = {
+        context_json_key: context_value_media,
+        type_json_key: csv_type_to_media_action_type[content["type"]],
+    }
     for csv_key, json_key in csv_columns_to_json_keys_movie.items():
       movie_item[json_key] = content[csv_key]
 
@@ -137,10 +140,10 @@ def create_json_episodes_list(csv_content_list):
   for content in csv_content_list:
     if csv_type_to_media_action_type[content["type"]] != "TVEpisode":
       continue
-    episode_item = {}
-    episode_item[context_json_key] = context_value_media
-    episode_item[type_json_key] = csv_type_to_media_action_type[content["type"]]
-
+    episode_item = {
+        context_json_key: context_value_media,
+        type_json_key: csv_type_to_media_action_type[content["type"]],
+    }
     for csv_key, json_key in csv_columns_to_json_keys_episode.items():
       episode_item[json_key] = content[csv_key]
 
@@ -154,48 +157,59 @@ def create_json_episodes_list(csv_content_list):
 def create_tv_series_list(tv_series_tuple_list):
   tv_series_list = []
   for series_tuple in tv_series_tuple_list:
-    series_item = {}
-    series_item[context_json_key] = context_value_media
-    series_item[type_json_key] = "TVSeries"
-    series_item[id_json_key] = series_tuple[tvSeriesUri_csv_key]
-    series_item["url"] = series_tuple[tvSeriesUri_csv_key]
-    series_item["name"] = series_tuple[category_csv_key]
-    series_item[potential_action_key] = \
-      create_potentialAction_object(series_tuple[tvSeriesUri_csv_key])
+    series_item = {
+        context_json_key:
+        context_value_media,
+        type_json_key:
+        "TVSeries",
+        id_json_key:
+        series_tuple[tvSeriesUri_csv_key],
+        "url":
+        series_tuple[tvSeriesUri_csv_key],
+        "name":
+        series_tuple[category_csv_key],
+        potential_action_key:
+        create_potentialAction_object(series_tuple[tvSeriesUri_csv_key]),
+    }
     tv_series_list.append(series_item)
   return tv_series_list
 
 def create_partOfSeason_object(csv_content):
-  partOfSeason = {}
-  partOfSeason[type_json_key] = "TVSeason"
-  partOfSeason[id_json_key] = csv_content[tvSeasonUri_csv_key]
-  partOfSeason["seasonNumber"] = csv_content[seasonNumber_csv_key]
-  return partOfSeason
+  return {
+      type_json_key: "TVSeason",
+      id_json_key: csv_content[tvSeasonUri_csv_key],
+      "seasonNumber": csv_content[seasonNumber_csv_key],
+  }
 
 def create_partOfSeries_object(csv_content):
-  partOfSeries = {}
-  partOfSeries[type_json_key] = "TVSeries"
-  partOfSeries[id_json_key] = csv_content[tvSeriesUri_csv_key]
-  partOfSeries["name"] = csv_content[category_csv_key]
-  return partOfSeries
+  return {
+      type_json_key: "TVSeries",
+      id_json_key: csv_content[tvSeriesUri_csv_key],
+      "name": csv_content[category_csv_key],
+  }
 
 def create_potentialAction_object(csv_content_uri):
-  potentialAction = {}
-  potentialAction[type_json_key] = "WatchAction"
-
-  target = {}
-  target[type_json_key] = "EntryPoint"
-  target["urlTemplate"] = csv_content_uri
-  target["actionPlatform"] = ["http://schema.org/AndroidTVPlatform",
-                              "http://schema.googleapis.com/GoogleVideoCast"]
+  potentialAction = {type_json_key: "WatchAction"}
+  target = {
+      type_json_key:
+      "EntryPoint",
+      "urlTemplate":
+      csv_content_uri,
+      "actionPlatform": [
+          "http://schema.org/AndroidTVPlatform",
+          "http://schema.googleapis.com/GoogleVideoCast",
+      ],
+  }
   potentialAction["target"] = target
 
-  accessibility_requirement = {}
-  accessibility_requirement[type_json_key] = "ActionAccessSpecification"
-  accessibility_requirement[category_csv_key] = "nologinrequired"
-  accessibility_requirement["availabilityStarts"] = datetime.now().replace(microsecond=0) \
-                                                    .isoformat()+"Z"
-
+  accessibility_requirement = {
+      type_json_key:
+      "ActionAccessSpecification",
+      category_csv_key:
+      "nologinrequired",
+      "availabilityStarts":
+      (datetime.now().replace(microsecond=0).isoformat() + "Z"),
+  }
   """
   Since the content is always available after it's published, the availability end date property is
   set to be 20 years from the current date. For further details on the properties, visit the link -
